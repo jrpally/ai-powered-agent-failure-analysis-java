@@ -1,0 +1,34 @@
+# Compiled output
+target/
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.code-workspace
+.settings/
+.classpath
+.project
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+
+# Test output
+surefire-reports/
+failsafe-reports/

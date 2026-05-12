@@ -175,8 +175,8 @@ JUnit 5 is declared `provided` — the library works with whatever version your 
 ## Building from source
 
 ```bash
-git clone https://github.com/failureanalyzer/java-failure-analyzer.git
-cd java-failure-analyzer
+git clone https://github.com/jrpally/ai-powered-agent-failure-analysis-java.git
+cd ai-powered-agent-failure-analysis-java
 mvn clean install -DskipTests
 ```
 

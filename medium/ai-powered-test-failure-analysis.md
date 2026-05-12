@@ -214,4 +214,4 @@ The best debugging tool is the one that runs automatically. Java Failure Analyze
 
 ---
 
-*Source code: [github.com/failureanalyzer/java-failure-analyzer](https://github.com/failureanalyzer/java-failure-analyzer)*
+*Source code: [github.com/jrpally/ai-powered-agent-failure-analysis-java](https://github.com/jrpally/ai-powered-agent-failure-analysis-java)*

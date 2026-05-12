@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stop Guessing Why Your Tests Fail — Let GitHub Copilot Tell You</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1e2733;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --accent2: #3fb950;
+      --accent3: #f78166;
+      --accent4: #d2a8ff;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --yellow: #e3b341;
+      --code-bg: #0d1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f35 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 50%, rgba(88,166,255,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 35% at 80% 30%, rgba(210,168,255,.10) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 60% 80%, rgba(63,185,80,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(88,166,255,.15);
+      border: 1px solid rgba(88,166,255,.4);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 820px;
+      margin: 0 auto 20px;
+      letter-spacing: -.02em;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero .subtitle {
+      color: var(--muted);
+      font-size: 1.15rem;
+      max-width: 580px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .content {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 64px 24px 100px;
+    }
+
+    /* ── SECTIONS ── */
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      margin: 56px 0 16px;
+      letter-spacing: -.02em;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 .icon { margin-right: 8px; }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--accent4);
+    }
+
+    p { margin-bottom: 18px; color: #cdd9e5; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── CALLOUT ── */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 28px 0;
+      font-size: 1.05rem;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    /* ── FLOW DIAGRAM ── */
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      padding-left: 20px;
+      height: 24px;
+      color: var(--border);
+      font-size: 20px;
+    }
+
+    .flow-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent4));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .flow-text { font-size: 0.95rem; color: var(--text); }
+    .flow-text strong { color: var(--accent); }
+
+    /* ── CODE ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.65;
+      margin: 18px 0 28px;
+    }
+
+    code {
+      font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+      font-size: .875em;
+      background: rgba(110,118,129,.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent4);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+      border-radius: 0;
+    }
+
+    /* syntax colours */
+    .k  { color: #ff7b72; }   /* keyword */
+    .t  { color: #79c0ff; }   /* type */
+    .s  { color: #a5d6ff; }   /* string */
+    .c  { color: #8b949e; font-style: italic; } /* comment */
+    .n  { color: #e6edf3; }   /* normal */
+    .a  { color: var(--accent4); } /* annotation */
+    .m  { color: var(--accent2); } /* method / prop */
+    .p  { color: var(--yellow); }  /* property */
+
+    /* ── TERMINAL BLOCK ── */
+    .terminal {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 18px 0 28px;
+    }
+
+    .terminal-bar {
+      background: var(--surface2);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-bar .btn {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+
+    .btn-red   { background: #ff5f57; }
+    .btn-yellow{ background: #ffbd2e; }
+    .btn-green { background: #28c840; }
+
+    .terminal pre {
+      border: none;
+      border-radius: 0;
+      margin: 0;
+      padding: 20px 24px;
+      font-size: 13px;
+    }
+
+    .t-prompt { color: var(--accent2); }
+    .t-cmd    { color: var(--text); }
+    .t-box    { color: var(--accent); }
+    .t-head   { color: var(--accent4); font-weight: bold; }
+    .t-label  { color: var(--yellow); }
+    .t-body   { color: #cdd9e5; }
+    .t-warn   { color: var(--accent3); }
+
+    /* ── PROVIDERS LIST ── */
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 24px 0 32px;
+    }
+
+    .provider-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .provider-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    .provider-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .provider-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .provider-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ── CONFIG TABLE ── */
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 32px;
+      font-size: 14px;
+    }
+
+    .config-table th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .config-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: #cdd9e5;
+    }
+
+    .config-table tr:last-child td { border-bottom: none; }
+    .config-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    .config-table td:first-child { color: var(--accent4); font-family: monospace; font-size: 13px; }
+    .config-table td:last-child  { color: var(--muted); font-size: 13px; }
+
+    /* ── ARCH GRID ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin: 24px 0 32px;
+    }
+
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .arch-card .class-name {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .arch-card .class-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── BENEFITS ── */
+    .benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 24px 0 32px;
+    }
+
+    .benefit-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 18px;
+    }
+
+    .benefit-icon { font-size: 1.8rem; margin-bottom: 10px; }
+
+    .benefit-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .benefit-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── STEPS ── */
+    .steps { list-style: none; margin: 20px 0 32px; }
+
+    .steps li {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1f6feb, #388bfd);
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-body { flex: 1; }
+    .step-title { font-weight: 700; margin-bottom: 6px; color: var(--text); }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer a { color: var(--accent); }
+
+    @media (max-width: 600px) {
+      .hero { padding: 56px 16px 48px; }
+      .content { padding: 40px 16px 60px; }
+      h2 { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<header class="hero">
+  <div class="hero-tag">Java · JUnit 5 · GitHub Copilot AI</div>
+  <h1>Stop Guessing Why Your Tests Fail —<br><span>Let GitHub Copilot Tell You</span></h1>
+  <p class="subtitle">How a 10-line annotation turns every JUnit failure into an AI-powered diagnosis with root cause, analysis, and a concrete fix.</p>
+  <div class="hero-badges">
+    <span class="badge"><span class="dot"></span> Java 25</span>
+    <span class="badge"><span class="dot" style="background:#d2a8ff"></span> JUnit 5</span>
+    <span class="badge"><span class="dot" style="background:#f78166"></span> Maven 3.9+</span>
+    <span class="badge"><span class="dot" style="background:#e3b341"></span> GitHub Copilot API</span>
+    <span class="badge"><span class="dot" style="background:#58a6ff"></span> Zero boilerplate</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════ CONTENT ═══════════════════════ -->
+<main class="content">
+
+  <p>You've been there. A test goes red in CI at 2 AM. The stack trace points to line 47 of a file you didn't write. The assertion message says <code>expected: &lt;true&gt; but was: &lt;false&gt;</code>. Congratulations — you now own a mystery.</p>
+
+  <p>What if the moment a test failed, an AI expert appeared in your console and said: <em>"Here's the root cause, here's why it happened, and here's the exact fix"</em>?</p>
+
+  <div class="callout">
+    Java Failure Analyzer is a JUnit 5 extension that intercepts test failures and automatically sends the failure context to GitHub Copilot — then prints a structured diagnosis back to your console.
+  </div>
+
+  <!-- ── HOW IT WORKS ── -->
+  <h2><span class="icon">⚙️</span>How it works</h2>
+
+  <p>JUnit 5 has a little-known extension point called <code>TestWatcher</code>. It fires a callback every time a test fails. Java Failure Analyzer hooks into that callback:</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-text"><strong>Test fails</strong> — JUnit calls <code>testFailed(context, throwable)</code></div>
+    </div>
+    <div class="flow-connector">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-text"><strong>Extension captures</strong> — exception, stack trace, test source, production source</div>
+    </div>
+    <div class="flow-connector">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-text"><strong>Sends to Copilot</strong> — the full context is crafted into a precise prompt</div>
+    </div>
+    <div class="flow-connector">↓</div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-text"><strong>Diagnosis printed</strong> — Root Cause · Analysis · Suggested Fix · Prevention</div>
+    </div>
+  </div>
+
+  <p>The key differentiator: the model doesn't just see a stack trace — it sees the <strong>actual source code</strong> that caused the problem, the same way a human reviewer would. <code>SourceCodeLoader</code> automatically finds the <code>.java</code> file for both the test class and the production class under test.</p>
+
+  <!-- ── OUTPUT ── -->
+  <h2><span class="icon">🖥️</span>The output</h2>
+
+  <p>When a test fails, this appears in your console — before you've even opened the file:</p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="btn btn-red"></span>
+      <span class="btn btn-yellow"></span>
+      <span class="btn btn-green"></span>
+    </div>
+    <pre><span class="t-box">╔══════════════════════════════════════════════════════════════╗
+║          🤖  GitHub Copilot — Failure Analysis              ║
+╠══════════════════════════════════════════════════════════════╣
+║  Test: stringReverseShouldWork                               ║
+╠══════════════════════════════════════════════════════════════╣</span>
+
+<span class="t-label">  ## Root Cause</span>
+<span class="t-body">  The `reverseString` helper initializes the right pointer to
+  `chars.length - 2` instead of `chars.length - 1`, leaving the
+  first and last characters unswapped.</span>
+
+<span class="t-label">  ## Analysis</span>
+<span class="t-body">  For input "hello" (length 5), right starts at index 3 instead
+  of 4. The swap loop never touches index 4 ('o'), producing
+  "lleho" instead of "olleh".</span>
+
+<span class="t-label">  ## Suggested Fix</span>
+<span class="t-warn">  Change:  int right = chars.length - 2;
+  To:      int right = chars.length - 1;</span>
+
+<span class="t-label">  ## Prevention</span>
+<span class="t-body">  Add boundary tests with a 1-char and 2-char string to cover
+  edge cases of the swap loop.</span>
+
+<span class="t-box">╚══════════════════════════════════════════════════════════════╝</span></pre>
+  </div>
+
+  <!-- ── SETUP ── -->
+  <h2><span class="icon">🚀</span>Zero-friction setup</h2>
+
+  <h3>Option A — Annotate one class</h3>
+
+  <pre><span class="a">@ExtendWith</span><span class="n">(FailureAnalyzerExtension.</span><span class="k">class</span><span class="n">)</span>
+<span class="k">class</span> <span class="t">PaymentServiceTest</span> <span class="n">{</span>
+
+    <span class="a">@Test</span>
+    <span class="k">void</span> <span class="m">chargesCustomer</span><span class="n">() {</span>
+        <span class="c">// Any failure here → automatically analyzed by Copilot AI</span>
+    <span class="n">}</span>
+<span class="n">}</span></pre>
+
+  <h3>Option B — Activate for every test in the project</h3>
+
+  <p>Add one line to <code>src/test/resources/junit-platform.properties</code>:</p>
+
+  <pre><span class="p">junit.jupiter.extensions.autodetection.enabled</span><span class="n">=</span><span class="s">true</span></pre>
+
+  <p>The JAR ships a <code>META-INF/services</code> file that registers the extension via Java's service loader. That single property switches it on globally — no annotation needed on any test class. Then:</p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="btn btn-red"></span>
+      <span class="btn btn-yellow"></span>
+      <span class="btn btn-green"></span>
+    </div>
+    <pre><span class="t-prompt">$</span> <span class="t-cmd">export GITHUB_TOKEN=ghp_yourPersonalAccessToken</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mvn test</span></pre>
+  </div>
+
+  <!-- ── PROVIDERS ── -->
+  <h2><span class="icon">🔌</span>Provider flexibility</h2>
+
+  <p>The extension isn't locked to one AI backend. It resolves providers in priority order:</p>
+
+  <div class="providers">
+    <div class="provider-card">
+      <div class="provider-num">Priority 1</div>
+      <div class="provider-name">Custom Endpoint</div>
+      <div class="provider-desc">Any OpenAI-compatible API — self-hosted LLMs included</div>
+    </div>
+    <div class="provider-card">
+      <div class="provider-num">Priority 2</div>
+      <div class="provider-name">GitHub Copilot</div>
+      <div class="provider-desc">Exchanges your PAT for a short-lived session token automatically</div>
+    </div>
+    <div class="provider-card">
+      <div class="provider-num">Priority 3</div>
+      <div class="provider-name">GitHub Models</div>
+      <div class="provider-desc">Uses your PAT directly — simpler, no token exchange</div>
+    </div>
+    <div class="provider-card">
+      <div class="provider-num">Priority 4</div>
+      <div class="provider-name">OpenAI</div>
+      <div class="provider-desc">Drop in an <code>OPENAI_API_KEY</code> and it just works</div>
+    </div>
+  </div>
+
+  <!-- ── CONFIG ── -->
+  <h2><span class="icon">🎛️</span>Configuration without ceremony</h2>
+
+  <p>Every option is a system property or environment variable — nothing to commit to your repository:</p>
+
+  <table class="config-table">
+    <thead>
+      <tr>
+        <th>System Property</th>
+        <th>Default</th>
+        <th>What it does</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>failureanalyzer.github.token</td><td>—</td><td>GitHub PAT (Copilot / Models)</td></tr>
+      <tr><td>failureanalyzer.openai.api.key</td><td>—</td><td>OpenAI-compatible API key</td></tr>
+      <tr><td>failureanalyzer.endpoint</td><td>—</td><td>Custom completions endpoint URL</td></tr>
+      <tr><td>failureanalyzer.model</td><td>gpt-4o</td><td>Model name sent to the API</td></tr>
+      <tr><td>failureanalyzer.include.source</td><td>true</td><td>Include source code in the prompt</td></tr>
+      <tr><td>failureanalyzer.save.to.file</td><td>false</td><td>Save analysis to files</td></tr>
+      <tr><td>failureanalyzer.output.dir</td><td>target/failure-analysis</td><td>Output directory for saved analyses</td></tr>
+      <tr><td>failureanalyzer.max.tokens</td><td>2000</td><td>Max response tokens</td></tr>
+      <tr><td>failureanalyzer.verbose</td><td>false</td><td>Print the full prompt sent to the API</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── ARCHITECTURE ── -->
+  <h2><span class="icon">🏗️</span>The architecture</h2>
+
+  <p>Five classes. Each with a single, clearly defined job:</p>
+
+  <div class="arch-grid">
+    <div class="arch-card">
+      <div class="class-name">FailureAnalyzerExtension</div>
+      <div class="class-desc">JUnit 5 hook — implements <code>TestWatcher</code> and orchestrates the analysis flow</div>
+    </div>
+    <div class="arch-card">
+      <div class="class-name">CopilotClient</div>
+      <div class="class-desc">HTTP calls to the AI provider, handles token exchange and provider fallback</div>
+    </div>
+    <div class="arch-card">
+      <div class="class-name">AnalyzerConfig</div>
+      <div class="class-desc">Reads system properties and environment variables with sensible defaults</div>
+    </div>
+    <div class="arch-card">
+      <div class="class-name">FailureContext</div>
+      <div class="class-desc">Value object holding the exception, stack trace, and source code</div>
+    </div>
+    <div class="arch-card">
+      <div class="class-name">SourceCodeLoader</div>
+      <div class="class-desc">Finds <code>.java</code> files on disk from standard Maven/Gradle project layouts</div>
+    </div>
+  </div>
+
+  <!-- ── BENEFITS ── -->
+  <h2><span class="icon">💡</span>Why this matters for teams</h2>
+
+  <div class="benefits">
+    <div class="benefit-card">
+      <div class="benefit-icon">⚡</div>
+      <div class="benefit-title">Faster triage</div>
+      <div class="benefit-desc">Developers see the diagnosis immediately — no context-switching to open files or walk the stack manually</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📋</div>
+      <div class="benefit-title">Better bug reports</div>
+      <div class="benefit-desc">The "Suggested Fix" gives reviewers concrete code changes to evaluate, not just symptoms</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">🎓</div>
+      <div class="benefit-title">Knowledge transfer</div>
+      <div class="benefit-desc">Junior developers get the same quality of diagnosis a senior would write — every time, instantly</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📦</div>
+      <div class="benefit-title">CI artifact value</div>
+      <div class="benefit-desc">With <code>save.to.file=true</code>, analyses are archived alongside test reports for post-mortems</div>
+    </div>
+  </div>
+
+  <!-- ── GETTING STARTED ── -->
+  <h2><span class="icon">🏁</span>Get started in 5 minutes</h2>
+
+  <ol class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Add the dependency</div>
+        <pre><span class="n">&lt;</span><span class="t">dependency</span><span class="n">&gt;
+  &lt;</span><span class="m">groupId</span><span class="n">&gt;</span><span class="s">io.github.failureanalyzer</span><span class="n">&lt;/</span><span class="m">groupId</span><span class="n">&gt;
+  &lt;</span><span class="m">artifactId</span><span class="n">&gt;</span><span class="s">java-failure-analyzer</span><span class="n">&lt;/</span><span class="m">artifactId</span><span class="n">&gt;
+  &lt;</span><span class="m">version</span><span class="n">&gt;</span><span class="s">1.0.0</span><span class="n">&lt;/</span><span class="m">version</span><span class="n">&gt;
+  &lt;</span><span class="m">scope</span><span class="n">&gt;</span><span class="s">test</span><span class="n">&lt;/</span><span class="m">scope</span><span class="n">&gt;
+&lt;/</span><span class="t">dependency</span><span class="n">&gt;</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Enable auto-registration</div>
+        <pre><span class="c"># src/test/resources/junit-platform.properties</span>
+<span class="p">junit.jupiter.extensions.autodetection.enabled</span><span class="n">=</span><span class="s">true</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Set your GitHub token</div>
+        <pre><span class="t-prompt">$</span> <span class="t-cmd">export GITHUB_TOKEN=ghp_yourPersonalAccessToken</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Run your tests — and let something fail</div>
+        <pre><span class="t-prompt">$</span> <span class="t-cmd">mvn test</span>
+<span class="c"># Watch Copilot diagnose the failure in real time</span></pre>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout">
+    The best debugging tool is the one that runs automatically. Java Failure Analyzer turns every red test into a teaching moment — and the teacher never sleeps.
+  </div>
+
+</main>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="footer">
+  <p>
+    <strong>Java Failure Analyzer</strong> · v1.0.0 · Java 25 · MIT License
+  </p>
+  <p style="margin-top:8px">
+    <a href="https://github.com/failureanalyzer/java-failure-analyzer">GitHub</a> &nbsp;·&nbsp;
+    <a href="#">Maven Central</a> &nbsp;·&nbsp;
+    <a href="#">Javadoc</a>
+  </p>
+</footer>
+
+</body>
+</html>

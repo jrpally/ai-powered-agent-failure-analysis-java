@@ -85,6 +85,14 @@ Root cause. Analysis. Suggested fix. Prevention. In one shot, before you've even
 
 ## Zero-friction setup
 
+**Three steps. No new config files. No changes to your existing tests.**
+
+1. Add the Maven dependency (one `<dependency>` block in `pom.xml`)
+2. Pick an integration option below (one annotation **or** one property line)
+3. Set a `GITHUB_TOKEN` environment variable
+
+That's it. Every test you already have starts getting AI-powered diagnoses the next time one fails.
+
 ![Setup and Benefits](setup-how-it-serves.png.png)
 
 ### Option A — Annotate one class

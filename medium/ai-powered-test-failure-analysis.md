@@ -22,6 +22,8 @@ No plugins. No dashboards. No configuration files to write. One annotation.
 
 ## How it works
 
+![Technical Architecture](technical-architecture.png.png)
+
 JUnit 5 has a little-known extension point called `TestWatcher`. It fires a callback every time a test fails, passes, or is aborted. Java Failure Analyzer hooks into that callback:
 
 ```
@@ -82,6 +84,8 @@ Root cause. Analysis. Suggested fix. Prevention. In one shot, before you've even
 ---
 
 ## Zero-friction setup
+
+![Setup and Benefits](setup-how-it-serves.png.png)
 
 ### Option A — Annotate one class
 
